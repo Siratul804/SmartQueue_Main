@@ -183,6 +183,13 @@
                                         <div class="fw-extrabold text-danger h5 mb-1">{{ t.token_number }}</div>
                                         <div class="x-small text-dark fw-bold mb-2">{{ t.service.name }} · {{ t.user.username }}</div>
                                         <div class="x-small text-secondary fst-italic">{{ t.emergency_reason|truncatechars:100 }}</div>
+                                        {% if t.emergency_document %}
+                                            <div class="mt-2">
+                                                <a href="{{ t.emergency_document.url }}" target="_blank">
+                                                    <img src="{{ t.emergency_document.url }}" class="img-fluid rounded-3 shadow-sm border" style="max-height: 80px; width: auto; object-fit: cover;">
+                                                </a>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                     <form method="post" action="{% url 'queue:approve_emergency' t.id %}">
                                         {% csrf_token %}

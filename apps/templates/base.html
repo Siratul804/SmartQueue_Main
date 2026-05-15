@@ -38,9 +38,11 @@
                     <a class="nav-link {% if request.resolver_match.view_name == 'organizations:organization_list' %}active{% endif %}" href="{% url 'organizations:organization_list' %}">Explore</a>
                 </li>
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'queue' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'queue:my_tokens' %}">My Tokens</a>
-                    </li>
+                    {% if user.profile.role == 'user' or user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'queue' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'queue:my_tokens' %}">My Tokens</a>
+                        </li>
+                    {% endif %}
                     {% if user.profile.role == 'organizer' or user.is_staff %}
                         <li class="nav-item">
                             <a class="nav-link fw-semibold" href="{% url 'accounts:profile' %}" style="color: #f59e0b !important;">Management</a>

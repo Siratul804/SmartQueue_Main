@@ -17,6 +17,20 @@ from apps.queue.forms import EmergencyRequestForm, TokenBookingForm
 from apps.queue.models import QueueHistory, Token, next_token_number_for_service
 
 
+
+class UserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """Mixin to ensure the user has the 'user' role or is staff."""
+    def test_func(self):
+        if not self.request.user.is_authenticated:
+            return False
+        return self.request.user.is_staff or self.request.user.profile.role == 'user'
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+        raise PermissionDenied("Only public users can access this page. Organizers should use the management portal.")
+
+
 def _wants_json(request) -> bool:
     """Return True when the client asked for a JSON payload (AJAX refresh)."""
     if request.GET.get('format') == 'json':
@@ -51,7 +65,7 @@ def _waiting_count(service: Service, booking_date) -> int:
     ).count()
 
 
-class BookTokenView(LoginRequiredMixin, TemplateView):
+class BookTokenView(UserRequiredMixin, TemplateView):
     """Book a queue token after validating daily limits and abuse protections."""
     template_name = 'queue/book_token.html'
 
@@ -241,7 +255,7 @@ class TokenStatusView(LoginRequiredMixin, DetailView):
         return redirect('queue:token_status', token_id=self.object.pk)
 
 
-class MyTokensView(LoginRequiredMixin, ListView):
+class MyTokensView(UserRequiredMixin, ListView):
     """List the current user's tokens split into active and historical sections."""
     model = Token
     template_name = 'queue/my_tokens.html'
@@ -266,7 +280,7 @@ class MyTokensView(LoginRequiredMixin, ListView):
         return context
 
 
-class EmergencyRequestView(LoginRequiredMixin, UpdateView):
+class EmergencyRequestView(UserRequiredMixin, UpdateView):
     """Allow a user to submit an emergency assistance request for a waiting token."""
     model = Token
     form_class = EmergencyRequestForm

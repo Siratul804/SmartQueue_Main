@@ -25,7 +25,7 @@ class OrganizerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         else:
             organization = get_object_or_404(Organization, slug=org_slug)
         
-        return self.request.user.is_staff or organization.organizers.filter(pk=self.request.user.pk).exists() or self.request.user.profile.role == 'organizer'
+        return self.request.user.is_staff or organization.organizers.filter(pk=self.request.user.pk).exists()
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -185,7 +185,7 @@ class OrganizerOrganizationListView(LoginRequiredMixin, ListView):
         return self.request.user.managed_organizations.all()
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_staff or request.user.profile.role == 'organizer'):
+        if not (request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'organizer')):
             raise PermissionDenied("You must be an organizer to view this page.")
         return super().dispatch(request, *args, **kwargs)
 
@@ -197,7 +197,7 @@ class OrganizationCreateView(LoginRequiredMixin, CreateView):
     fields = ['name', 'type', 'address', 'phone', 'email', 'max_daily_tokens']
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_staff or request.user.profile.role == 'organizer'):
+        if not (request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'organizer')):
             raise PermissionDenied("You must be an organizer to create an organization.")
         return super().dispatch(request, *args, **kwargs)
 
