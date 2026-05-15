@@ -2,90 +2,125 @@
 {% block title %}Organizer Dashboard · {{ organization.name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
+<div class="row align-items-center mb-5">
     <div class="col-md-8">
-        <h1 class="h2">{{ organization.name }} Dashboard</h1>
-        <p class="text-muted">Manage your queue services and monitor bookings.</p>
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="bg-primary-light text-primary rounded-3 p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
+            </div>
+            <h1 class="h3 fw-bold mb-0">{{ organization.name }} Dashboard</h1>
+        </div>
+        <p class="text-muted mb-0">Manage your queue services and monitor bookings in real-time.</p>
     </div>
-    <div class="col-md-4 text-md-end">
-        <a href="{% url 'organizations:organizer_profile_update' organization.slug %}" class="btn btn-outline-primary">Organization Settings</a>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'organizations:organizer_profile_update' organization.slug %}" class="btn btn-outline-primary px-4 rounded-pill fw-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            Settings
+        </a>
     </div>
 </div>
 
-<!-- Stats cards -->
+<!-- Stats grid -->
 <div class="row g-4 mb-5">
     <div class="col-md-3">
-        <div class="card border-0 bg-primary text-white shadow-sm">
-            <div class="card-body">
-                <div class="small opacity-75 mb-1">Waiting Today</div>
-                <div class="h2 mb-0">{{ waiting_today }}</div>
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Waiting Today</div>
+                <div class="d-flex align-items-end gap-2">
+                    <div class="display-6 fw-extrabold text-primary">{{ waiting_today }}</div>
+                    <div class="small text-success fw-bold mb-2">Users</div>
+                </div>
+                <div class="mt-3 progress" style="height: 4px;">
+                    <div class="progress-bar" style="width: 70%"></div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-0 bg-success text-white shadow-sm">
-            <div class="card-body">
-                <div class="small opacity-75 mb-1">Served Today</div>
-                <div class="h2 mb-0">{{ completed_today }}</div>
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Served Today</div>
+                <div class="d-flex align-items-end gap-2">
+                    <div class="display-6 fw-extrabold text-success">{{ completed_today }}</div>
+                    <div class="small text-success fw-bold mb-2">Done</div>
+                </div>
+                <div class="mt-3 progress" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 100%"></div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-0 bg-info text-white shadow-sm">
-            <div class="card-body">
-                <div class="small opacity-75 mb-1">In Service</div>
-                <div class="h2 mb-0">{{ serving_today }}</div>
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Currently Serving</div>
+                <div class="d-flex align-items-end gap-2">
+                    <div class="display-6 fw-extrabold text-info">{{ serving_today }}</div>
+                    <div class="small text-info fw-bold mb-2">Active</div>
+                </div>
+                <div class="mt-3 progress" style="height: 4px;">
+                    <div class="progress-bar bg-info" style="width: 40%"></div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-0 bg-secondary text-white shadow-sm">
-            <div class="card-body">
-                <div class="small opacity-75 mb-1">Cancelled</div>
-                <div class="h2 mb-0">{{ cancelled_today }}</div>
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Cancelled</div>
+                <div class="d-flex align-items-end gap-2">
+                    <div class="display-6 fw-extrabold text-danger">{{ cancelled_today }}</div>
+                    <div class="small text-danger fw-bold mb-2">Lost</div>
+                </div>
+                <div class="mt-3 progress" style="height: 4px;">
+                    <div class="progress-bar bg-danger" style="width: 20%"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Active Services -->
+    <!-- Services Status -->
     <div class="col-lg-8">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Services Status</h5>
-                <a href="{% url 'organizations:organizer_service_list' organization.slug %}" class="btn btn-sm btn-link">Manage Services</a>
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+            <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Services Monitor</h5>
+                <a href="{% url 'organizations:organizer_service_list' organization.slug %}" class="btn btn-sm btn-link text-primary fw-bold text-decoration-none">Manage All</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Service Name</th>
-                                <th>Prefix</th>
-                                <th>Avg. Time</th>
-                                <th>Waiting</th>
-                                <th>Status</th>
+                                <th class="ps-4 py-3 text-muted x-small fw-bold text-uppercase">Service</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Wait Count</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Avg. Time</th>
+                                <th class="pe-4 py-3 text-muted x-small fw-bold text-uppercase text-end">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for service in services %}
                             <tr>
-                                <td>{{ service.name }}</td>
-                                <td><span class="badge bg-light text-dark">{{ service.token_prefix }}</span></td>
-                                <td>{{ service.avg_service_time }} min</td>
-                                <td><span class="badge bg-primary rounded-pill">{{ service.waiting_count }}</span></td>
-                                <td>
+                                <td class="ps-4 py-3 fw-bold">
+                                    {{ service.name }}
+                                    <div class="x-small text-muted fw-normal mt-1">Prefix: <span class="fw-bold">{{ service.token_prefix }}</span></div>
+                                </td>
+                                <td class="py-3">
+                                    <span class="badge bg-primary-light text-primary rounded-pill px-3 py-2 fw-bold">{{ service.waiting_count }} waiting</span>
+                                </td>
+                                <td class="py-3 text-muted small">{{ service.avg_service_time }} mins</td>
+                                <td class="pe-4 py-3 text-end">
                                     {% if service.is_active %}
-                                        <span class="badge bg-success-subtle text-success">Active</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">ACTIVE</span>
                                     {% else %}
-                                        <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">INACTIVE</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No services configured yet.</td>
+                                <td colspan="4" class="text-center py-5 text-muted small">No services found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -95,110 +130,112 @@
         </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Sidebar Actions -->
     <div class="col-lg-4">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Quick Actions</h5>
-                <div class="d-grid gap-2">
-                    <a href="{% url 'organizations:organizer_booking_list' organization.slug %}" class="btn btn-primary text-start px-3 py-2">
-                        <span class="d-block fw-bold">View All Bookings</span>
-                        <span class="small opacity-75">Maintain user queue history</span>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Quick Control</h5>
+                <div class="d-grid gap-3">
+                    <a href="{% url 'queue:admin_dashboard' organization.id %}" class="btn btn-primary py-3 rounded-4 shadow-sm fw-bold d-flex align-items-center justify-content-between px-4">
+                        <span>Live Counter View</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </a>
-                    <a href="{% url 'organizations:organizer_service_create' organization.slug %}" class="btn btn-outline-primary text-start px-3 py-2">
-                        <span class="d-block fw-bold">Add New Service</span>
-                        <span class="small opacity-75">Create new counter or queue</span>
+                    <a href="{% url 'organizations:organizer_booking_list' organization.slug %}" class="btn btn-outline-primary py-3 rounded-4 fw-bold text-start px-4">
+                        <span class="d-block">All Bookings</span>
+                        <span class="x-small opacity-75 fw-normal">Historical data and analytics</span>
                     </a>
-                    <a href="{% url 'queue:admin_dashboard' organization.id %}" class="btn btn-dark text-start px-3 py-2">
-                        <span class="d-block fw-bold">Live Counter View</span>
-                        <span class="small opacity-75">Call tokens and serve users</span>
+                    <a href="{% url 'organizations:organizer_service_create' organization.slug %}" class="btn btn-outline-dark py-3 rounded-4 fw-bold text-start px-4 border-opacity-10">
+                        <span class="d-block">New Service</span>
+                        <span class="x-small opacity-75 fw-normal">Create counter or category</span>
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0">Recent Activity</h5>
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-header bg-white py-4 px-4 border-0">
+                <h5 class="fw-bold mb-0">Recent Activity</h5>
             </div>
             <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
+                <div class="list-group list-group-flush">
                     {% for token in recent_bookings %}
-                    <li class="list-group-item py-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="fw-bold">{{ token.token_number }}</span>
-                            <small class="text-muted">{{ token.created_at|timesince }} ago</small>
+                    <div class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-bold text-primary">{{ token.token_number }}</span>
+                            <span class="x-small text-muted">{{ token.created_at|timesince }} ago</span>
                         </div>
-                        <div class="small">
-                            {{ token.user.username }} booked for <strong>{{ token.service.name }}</strong>
+                        <div class="x-small text-secondary">
+                            <span class="fw-bold text-dark">{{ token.user.username }}</span> booked for <span class="fw-bold">{{ token.service.name }}</span>
                         </div>
-                    </li>
+                    </div>
                     {% empty %}
-                    <li class="list-group-item text-center py-4 text-muted">No recent activity.</li>
+                    <div class="p-5 text-center text-muted x-small">No recent activity</div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Today's Full Bookings Table -->
+<!-- Today's Queue -->
 <div class="row mt-5">
     <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold">Today's Bookings</h5>
-                <a href="{% url 'organizations:organizer_booking_list' organization.slug %}" class="btn btn-sm btn-outline-secondary">View All History</a>
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Live Queue Monitor <span class="badge bg-primary-light text-primary ms-2 rounded-pill fw-bold x-small">TODAY</span></h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-light border-0 rounded-pill px-3 x-small fw-bold">Export PDF</button>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Token</th>
-                                <th>User</th>
-                                <th>Service</th>
-                                <th>Status</th>
-                                <th>Time</th>
-                                <th class="text-end">Actions</th>
+                                <th class="ps-4 py-3 text-muted x-small fw-bold text-uppercase">Token</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Customer</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Service</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Status</th>
+                                <th class="py-3 text-muted x-small fw-bold text-uppercase">Arrival</th>
+                                <th class="pe-4 py-3 text-muted x-small fw-bold text-uppercase text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for token in today_bookings %}
                             <tr>
-                                <td class="fw-bold">{{ token.token_number }}</td>
-                                <td>
-                                    <div class="fw-semibold text-dark">{{ token.user.username }}</div>
-                                    <div class="small text-muted">{{ token.user.email }}</div>
+                                <td class="ps-4 py-3">
+                                    <div class="fw-extrabold text-primary h5 mb-0">{{ token.token_number }}</div>
                                 </td>
-                                <td>{{ token.service.name }}</td>
-                                <td>
+                                <td class="py-3">
+                                    <div class="fw-bold text-dark">{{ token.user.username }}</div>
+                                    <div class="x-small text-muted">{{ token.user.email|truncatechars:20 }}</div>
+                                </td>
+                                <td class="py-3 fw-medium text-secondary small">{{ token.service.name }}</td>
+                                <td class="py-3">
                                     {% if token.status == 'waiting' %}
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">Waiting</span>
+                                        <span class="badge bg-primary-light text-primary px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">WAITING</span>
                                     {% elif token.status == 'serving' %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2">Serving</span>
+                                        <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">SERVING</span>
                                     {% elif token.status == 'completed' %}
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2">Completed</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">COMPLETED</span>
                                     {% elif token.status == 'called' %}
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Called</span>
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">CALLED</span>
                                     {% else %}
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">Cancelled</span>
+                                        <span class="badge bg-light text-muted px-3 py-2 rounded-pill fw-bold" style="font-size: 0.65rem;">CANCELLED</span>
                                     {% endif %}
                                     
                                     {% if token.is_emergency and not token.emergency_approved %}
-                                        <span class="badge bg-danger ms-1">Emergency!</span>
+                                        <span class="badge bg-danger ms-1 rounded-circle p-1" title="Emergency Request"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <small class="text-muted">{{ token.created_at|date:"H:i" }}</small>
-                                </td>
-                                <td class="text-end">
+                                <td class="py-3 text-muted small fw-bold">{{ token.created_at|date:"H:i" }}</td>
+                                <td class="pe-4 py-3 text-end">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold border-0" type="button" data-bs-toggle="dropdown">
                                             Manage
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                            <li><a class="dropdown-item" href="{% url 'queue:token_status' token.id %}">View Details</a></li>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 12px;">
+                                            <li><a class="dropdown-item rounded-2 small fw-bold py-2" href="{% url 'queue:token_status' token.id %}">View Details</a></li>
                                             <li class="dropdown-divider"></li>
                                             
                                             {% if token.status == 'waiting' %}
@@ -207,7 +244,7 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="status" value="called">
                                                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                    <button type="submit" class="dropdown-item text-warning">Call Token</button>
+                                                    <button type="submit" class="dropdown-item rounded-2 small fw-bold py-2 text-warning">Call Now</button>
                                                 </form>
                                             </li>
                                             {% elif token.status == 'called' %}
@@ -216,7 +253,7 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="status" value="serving">
                                                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                    <button type="submit" class="dropdown-item text-info">Start Service</button>
+                                                    <button type="submit" class="dropdown-item rounded-2 small fw-bold py-2 text-info">Start Service</button>
                                                 </form>
                                             </li>
                                             {% elif token.status == 'serving' %}
@@ -225,7 +262,7 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="status" value="completed">
                                                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                    <button type="submit" class="dropdown-item text-success">Complete Service</button>
+                                                    <button type="submit" class="dropdown-item rounded-2 small fw-bold py-2 text-success">Complete</button>
                                                 </form>
                                             </li>
                                             {% endif %}
@@ -234,7 +271,7 @@
                                             <li>
                                                 <form method="post" action="{% url 'queue:approve_emergency' token.id %}">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="dropdown-item text-danger">Approve Emergency</button>
+                                                    <button type="submit" class="dropdown-item rounded-2 small fw-bold py-2 text-danger">Approve Emergency</button>
                                                 </form>
                                             </li>
                                             {% endif %}
@@ -245,7 +282,7 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="status" value="cancelled">
                                                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                    <button type="submit" class="dropdown-item">Cancel Booking</button>
+                                                    <button type="submit" class="dropdown-item rounded-2 small fw-bold py-2 text-muted">Cancel Booking</button>
                                                 </form>
                                             </li>
                                             {% endif %}
@@ -255,8 +292,11 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    No bookings found for today yet.
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="mb-3 opacity-25">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
+                                    </div>
+                                    <div class="text-muted small fw-bold">No bookings for today yet</div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -267,4 +307,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    .x-small { font-size: 0.65rem; }
+    .progress { background-color: #f1f5f9; border-radius: 10px; }
+    .progress-bar { background-color: var(--primary-color); }
+</style>
 {% endblock %}
+
