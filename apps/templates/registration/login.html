@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Login · SmartQueue{% endblock %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="p-4 p-lg-5">
+                        <h1 class="h2 mb-4 text-center">Login to SmartQueue</h1>
+
+                        <div class="text-center mb-5">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="login_type" id="login_user" autocomplete="off" checked onclick="updateLoginUI('user')">
+                                <label class="btn btn-outline-primary py-2" for="login_user">I am a User</label>
+
+                                <input type="radio" class="btn-check" name="login_type" id="login_organizer" autocomplete="off" onclick="updateLoginUI('organizer')">
+                                <label class="btn btn-outline-primary py-2" for="login_organizer">I am an Organizer</label>
+                            </div>
+                            <p id="login_hint" class="small text-muted mt-3">Log in to book and manage your queue tokens.</p>
+                        </div>
+
+                        <form method="post" action="{% url 'accounts:login' %}" novalidate>
+                            {% csrf_token %}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                            {% endif %}
+                            
+                            {% for field in form %}
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}">
+                            {% endif %}
+
+                            <div class="mt-5">
+                                <button class="btn btn-primary btn-lg w-100" type="submit" id="loginBtn">Login as User</button>
+                            </div>
+                        </form>
+                        
+                        <p class="mt-4 mb-0 text-center text-muted small">
+                            New to SmartQueue? <a href="{% url 'accounts:signup' %}" class="fw-bold">Create an account</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateLoginUI(type) {
+            const loginBtn = document.getElementById('loginBtn');
+            const loginHint = document.getElementById('login_hint');
+            
+            if (type === 'organizer') {
+                loginBtn.textContent = 'Login as Organizer';
+                loginHint.textContent = 'Log in to manage your organization and services.';
+            } else {
+                loginBtn.textContent = 'Login as User';
+                loginHint.textContent = 'Log in to book and manage your queue tokens.';
+            }
+        }
+    </script>
+{% endblock %}

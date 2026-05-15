@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Organizer Dashboard · {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h2">{{ organization.name }} Dashboard</h1>
+        <p class="text-muted">Manage your queue services and monitor bookings.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{% url 'organizations:organizer_profile_update' organization.slug %}" class="btn btn-outline-primary">Organization Settings</a>
+    </div>
+</div>
+
+<!-- Stats cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <div class="small opacity-75 mb-1">Waiting Today</div>
+                <div class="h2 mb-0">{{ waiting_today }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="small opacity-75 mb-1">Served Today</div>
+                <div class="h2 mb-0">{{ completed_today }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-info text-white shadow-sm">
+            <div class="card-body">
+                <div class="small opacity-75 mb-1">In Service</div>
+                <div class="h2 mb-0">{{ serving_today }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-secondary text-white shadow-sm">
+            <div class="card-body">
+                <div class="small opacity-75 mb-1">Cancelled</div>
+                <div class="h2 mb-0">{{ cancelled_today }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Active Services -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Services Status</h5>
+                <a href="{% url 'organizations:organizer_service_list' organization.slug %}" class="btn btn-sm btn-link">Manage Services</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Service Name</th>
+                                <th>Prefix</th>
+                                <th>Avg. Time</th>
+                                <th>Waiting</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td><span class="badge bg-light text-dark">{{ service.token_prefix }}</span></td>
+                                <td>{{ service.avg_service_time }} min</td>
+                                <td><span class="badge bg-primary rounded-pill">{{ service.waiting_count }}</span></td>
+                                <td>
+                                    {% if service.is_active %}
+                                        <span class="badge bg-success-subtle text-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No services configured yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'organizations:organizer_booking_list' organization.slug %}" class="btn btn-primary text-start px-3 py-2">
+                        <span class="d-block fw-bold">View All Bookings</span>
+                        <span class="small opacity-75">Maintain user queue history</span>
+                    </a>
+                    <a href="{% url 'organizations:organizer_service_create' organization.slug %}" class="btn btn-outline-primary text-start px-3 py-2">
+                        <span class="d-block fw-bold">Add New Service</span>
+                        <span class="small opacity-75">Create new counter or queue</span>
+                    </a>
+                    <a href="{% url 'queue:admin_dashboard' organization.id %}" class="btn btn-dark text-start px-3 py-2">
+                        <span class="d-block fw-bold">Live Counter View</span>
+                        <span class="small opacity-75">Call tokens and serve users</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for token in recent_bookings %}
+                    <li class="list-group-item py-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold">{{ token.token_number }}</span>
+                            <small class="text-muted">{{ token.created_at|timesince }} ago</small>
+                        </div>
+                        <div class="small">
+                            {{ token.user.username }} booked for <strong>{{ token.service.name }}</strong>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center py-4 text-muted">No recent activity.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Full Bookings Table -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">Today's Bookings</h5>
+                <a href="{% url 'organizations:organizer_booking_list' organization.slug %}" class="btn btn-sm btn-outline-secondary">View All History</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Token</th>
+                                <th>User</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for token in today_bookings %}
+                            <tr>
+                                <td class="fw-bold">{{ token.token_number }}</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ token.user.username }}</div>
+                                    <div class="small text-muted">{{ token.user.email }}</div>
+                                </td>
+                                <td>{{ token.service.name }}</td>
+                                <td>
+                                    {% if token.status == 'waiting' %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">Waiting</span>
+                                    {% elif token.status == 'serving' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2">Serving</span>
+                                    {% elif token.status == 'completed' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2">Completed</span>
+                                    {% elif token.status == 'called' %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Called</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">Cancelled</span>
+                                    {% endif %}
+                                    
+                                    {% if token.is_emergency and not token.emergency_approved %}
+                                        <span class="badge bg-danger ms-1">Emergency!</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ token.created_at|date:"H:i" }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Manage
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                            <li><a class="dropdown-item" href="{% url 'queue:token_status' token.id %}">View Details</a></li>
+                                            <li class="dropdown-divider"></li>
+                                            
+                                            {% if token.status == 'waiting' %}
+                                            <li>
+                                                <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="called">
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="dropdown-item text-warning">Call Token</button>
+                                                </form>
+                                            </li>
+                                            {% elif token.status == 'called' %}
+                                            <li>
+                                                <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="serving">
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="dropdown-item text-info">Start Service</button>
+                                                </form>
+                                            </li>
+                                            {% elif token.status == 'serving' %}
+                                            <li>
+                                                <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="completed">
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="dropdown-item text-success">Complete Service</button>
+                                                </form>
+                                            </li>
+                                            {% endif %}
+
+                                            {% if token.status == 'waiting' and token.is_emergency and not token.emergency_approved %}
+                                            <li>
+                                                <form method="post" action="{% url 'queue:approve_emergency' token.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="dropdown-item text-danger">Approve Emergency</button>
+                                                </form>
+                                            </li>
+                                            {% endif %}
+                                            
+                                            {% if token.status != 'completed' and token.status != 'cancelled' %}
+                                            <li>
+                                                <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="cancelled">
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="dropdown-item">Cancel Booking</button>
+                                                </form>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    No bookings found for today yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

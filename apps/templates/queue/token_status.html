@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Token {{ token.token_number }} · SmartQueue{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Token status</h1>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'queue:my_tokens' %}">My Tokens</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <div class="text-muted small">Your token</div>
+                    <div id="sq-token-number" class="display-5 fw-bold">{{ token.token_number }}</div>
+                    <div class="text-muted mt-2">
+                        {{ token.organization.name }} · {{ token.service.name }}
+                    </div>
+                </div>
+                <div class="col-md-6 text-center">
+                    <div class="text-muted small">Status</div>
+                    <div id="sq-status" class="fs-3 fw-semibold">{{ token.get_status_display }}</div>
+                    <div id="sq-called-banner"
+                         class="alert alert-success mt-3 mb-0 {% if token.status != 'called' %}d-none{% endif %}">
+                        {% if is_staff_or_organizer %}
+                            Token is called.
+                        {% else %}
+                            Your turn now! Please proceed to the counter.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Queue position</div>
+                    <div id="sq-position" class="display-6 fw-bold">{% if position %}{{ position }}{% else %}—{% endif %}</div>
+                    <div class="text-muted small mt-1">Among waiting tokens today</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Estimated wait</div>
+                    <div id="sq-wait" class="display-6 fw-bold">{{ wait_minutes }}m</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Waiting ahead (service/day)</div>
+                    <div id="sq-total-waiting" class="display-6 fw-bold">{{ total_waiting }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Progress</span>
+            <span id="sq-progress-label">{{ progress }}%</span>
+        </div>
+        <div class="progress" style="height: 18px;">
+            <div id="sq-progress" class="progress-bar" role="progressbar" style="width: {{ progress }}%;"
+                 aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        {% if token.status == 'waiting' %}
+            {% if not is_staff_or_organizer %}
+                <a class="btn btn-outline-danger" href="{% url 'queue:emergency_request' token.id %}">Emergency request</a>
+            {% endif %}
+            <form method="post" action="{% url 'queue:cancel_token' token.id %}" onsubmit="return confirm('Cancel this token?');">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Cancel token</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if is_staff_or_organizer %}
+    <div class="card shadow-sm border-0 border-start border-4 border-primary mt-3">
+        <div class="card-body">
+            <h5 class="card-title h6 fw-bold text-primary mb-3">Organizer Controls</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <form method="post" action="{% url 'queue:token_status' token.id %}" class="d-inline">
+                    {% csrf_token %}
+                    {% if token.status == 'waiting' %}
+                        <input type="hidden" name="status" value="called">
+                        <button type="submit" class="btn btn-warning btn-sm">Call Token</button>
+                    {% elif token.status == 'called' %}
+                        <input type="hidden" name="status" value="serving">
+                        <button type="submit" class="btn btn-info btn-sm">Start Service</button>
+                    {% elif token.status == 'serving' %}
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-success btn-sm">Complete Service</button>
+                    {% endif %}
+                </form>
+                
+                {% if token.status != 'completed' and token.status != 'cancelled' %}
+                <form method="post" action="{% url 'queue:token_status' token.id %}" class="d-inline" onsubmit="return confirm('Force cancel this token?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Token</button>
+                </form>
+                {% endif %}
+                
+                <a href="{% url 'organizations:organizer_booking_list' token.organization.slug %}" class="btn btn-outline-secondary btn-sm">Back to Bookings</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <p class="text-muted small mt-3 mb-0">This page refreshes automatically every 10 seconds.</p>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        (function () {
+            const tokenId = "{{ token.id }}";
+            const statusUrl = "{% url 'queue:token_status' token_id=token.id %}?format=json";
+            let lastStatus = "{{ token.status }}";
+
+            function updateText(id, text) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            }
+
+            function beep() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = "sine";
+                    o.frequency.value = 880;
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    g.gain.value = 0.0001;
+                    const now = ctx.currentTime;
+                    g.gain.exponentialRampToValueAtTime(0.2, now + 0.01);
+                    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+                    o.start(now);
+                    o.stop(now + 0.3);
+                } catch (e) {
+                    // Ignore audio failures (user gesture restrictions, etc.)
+                }
+            }
+
+            function applyPayload(data) {
+                updateText('sq-token-number', data.token_number);
+                const statusMap = {
+                    waiting: 'Waiting',
+                    called: 'Called',
+                    serving: 'Serving',
+                    completed: 'Completed',
+                    cancelled: 'Cancelled'
+                };
+                updateText('sq-status', statusMap[data.status] || data.status);
+                updateText('sq-position', (data.position && data.status === 'waiting') ? String(data.position) : '—');
+                updateText('sq-wait', (data.wait_minutes || 0) + 'm');
+                updateText('sq-total-waiting', String(data.total_waiting || 0));
+
+                const progress = Math.max(0, Math.min(100, data.progress || 0));
+                const bar = document.getElementById('sq-progress');
+                if (bar) {
+                    bar.style.width = progress + '%';
+                    bar.setAttribute('aria-valuenow', String(progress));
+                }
+                updateText('sq-progress-label', progress + '%');
+
+                const calledBanner = document.getElementById('sq-called-banner');
+                if (calledBanner) {
+                    if (data.status === 'called') {
+                        calledBanner.classList.remove('d-none');
+                    } else {
+                        calledBanner.classList.add('d-none');
+                    }
+                }
+
+                if (lastStatus !== 'called' && data.status === 'called') {
+                    beep();
+                }
+                lastStatus = data.status;
+            }
+
+            async function poll() {
+                try {
+                    const res = await fetch(statusUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    applyPayload(data);
+                } catch (e) {
+                    // Network hiccups should not break the page
+                }
+            }
+
+            setInterval(poll, 10000);
+            poll();
+        })();
+    </script>
+{% endblock %}

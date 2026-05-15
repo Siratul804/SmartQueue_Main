@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Bookings Maintenance · {{ organization.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'organizations:organizer_dashboard' organization.slug %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Bookings</li>
+    </ol>
+</nav>
+
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h1 class="h3">Maintain Bookings</h1>
+        <p class="text-muted mb-0">View, verify, and update full history of user bookings.</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm mb-4 border-0 bg-light">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Service</label>
+                <select name="service" class="form-select form-select-sm">
+                    <option value="">All Services</option>
+                    {% for service in services %}
+                    <option value="{{ service.id }}" {% if request.GET.service == service.id|stringformat:"s" %}selected{% endif %}>{{ service.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Booking Date</label>
+                <input type="date" name="date" class="form-select form-select-sm" value="{{ request.GET.date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-sm btn-primary w-100">Filter Bookings</button>
+                <a href="?" class="btn btn-sm btn-link ms-2">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Token</th>
+                        <th>User</th>
+                        <th>Service</th>
+                        <th>Booking Date</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                        <th>Emergency</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for token in tokens %}
+                    <tr>
+                        <td class="fw-bold">{{ token.token_number }}</td>
+                        <td>
+                            <div>{{ token.user.username }}</div>
+                            <small class="text-muted">{{ token.user.email }}</small>
+                        </td>
+                        <td>{{ token.service.name }}</td>
+                        <td>{{ token.booking_date|date:"M d, Y" }}</td>
+                        <td><small>{{ token.created_at|date:"M d, H:i" }}</small></td>
+                        <td>
+                            {% if token.status == 'waiting' %}
+                                <span class="badge bg-primary-subtle text-primary">Waiting</span>
+                            {% elif token.status == 'serving' %}
+                                <span class="badge bg-info-subtle text-info">Serving</span>
+                            {% elif token.status == 'completed' %}
+                                <span class="badge bg-success-subtle text-success">Completed</span>
+                            {% elif token.status == 'called' %}
+                                <span class="badge bg-warning-subtle text-warning">Called</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if token.is_emergency %}
+                                {% if token.emergency_approved %}
+                                    <span class="badge bg-danger">Approved Emergency</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Pending Emergency</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    Manage
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'queue:token_status' token.id %}">View Status Details</a></li>
+                                    
+                                    <li class="dropdown-divider"></li>
+                                    
+                                    {% if token.status == 'waiting' %}
+                                    <li>
+                                        <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="called">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="dropdown-item text-warning">Call Token</button>
+                                        </form>
+                                    </li>
+                                    {% elif token.status == 'called' %}
+                                    <li>
+                                        <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="serving">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="dropdown-item text-info">Start Service</button>
+                                        </form>
+                                    </li>
+                                    {% elif token.status == 'serving' %}
+                                    <li>
+                                        <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="completed">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="dropdown-item text-success">Complete Service</button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+
+                                    {% if token.status == 'waiting' and token.is_emergency and not token.emergency_approved %}
+                                    <li>
+                                        <form method="post" action="{% url 'queue:approve_emergency' token.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger">Approve Emergency</button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% if token.status != 'completed' and token.status != 'cancelled' %}
+                                    <li>
+                                        <form method="post" action="{% url 'queue:token_status' token.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="cancelled">
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="dropdown-item">Cancel Booking</button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            No bookings found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.service %}&service={{ request.GET.service }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">Previous</a></li>
+        {% endif %}
+        
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ paginator.num_pages }}</span></li>
+        
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.service %}&service={{ request.GET.service }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

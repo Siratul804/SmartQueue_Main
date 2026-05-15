@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ organization.name }} · SmartQueue{% endblock %}
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'organizations:organization_list' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ organization.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h3">{{ organization.name }}</h1>
+                    <p class="text-muted mb-1"><span class="badge text-bg-secondary">{{ organization.get_type_display }}</span></p>
+                    <p class="mb-2">{{ organization.address }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ organization.phone }}</p>
+                    <p class="mb-0"><strong>Email:</strong> {{ organization.email }}</p>
+                    {% if is_organizer %}
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-outline-primary" href="{% url 'organizations:organizer_dashboard' organization.slug %}">
+                                Organizer Portal
+                            </a>
+                            <a class="btn btn-sm btn-outline-dark" href="{% url 'queue:admin_dashboard' organization.id %}">
+                                Live Counter View
+                            </a>
+                        </div>
+                    {% elif user.is_staff %}
+                        <hr>
+                        <a class="btn btn-sm btn-outline-dark w-100" href="{% url 'queue:admin_dashboard' organization.id %}">
+                            Staff dashboard
+                        </a>
+                    {% endif %}
+                    <hr>
+                    <p class="small text-muted mb-0">
+                        Daily token capacity: <strong>{{ organization.max_daily_tokens }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <h2 class="h4 mb-3">Services</h2>
+            <div class="row row-cols-1 g-3">
+                {% for row in service_cards %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h3 class="h5">{{ row.service.name }}</h3>
+                                        <p class="text-muted small mb-2">
+                                            Average service time: {{ row.service.avg_service_time }} minutes
+                                        </p>
+                                    </div>
+                                    <span class="badge text-bg-info">Queue today: {{ row.waiting_today }}</span>
+                                </div>
+                                <div class="mt-auto d-flex gap-2">
+                                    {% if user.is_authenticated %}
+                                        <a class="btn btn-primary"
+                                           href="{% url 'queue:book_token' organization.slug row.service.id %}">Book
+                                            Token</a>
+                                    {% else %}
+                                        {% url 'queue:book_token' organization.slug row.service.id as book_url %}
+                                        <a class="btn btn-primary"
+                                           href="{% url 'accounts:login' %}?next={{ book_url|urlencode }}">Login
+                                            to Book</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col">
+                        <div class="alert alert-warning mb-0">No active services are available right now.</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Organizations · SmartQueue{% endblock %}
+{% block content %}
+    {% if is_organizer %}
+    <div class="alert alert-info border-0 shadow-sm p-4 mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="h5 mb-1">Welcome back, Organizer!</h4>
+            <p class="mb-0 small text-muted">Manage your organizations, services, and live queue from your portal.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'organizations:organizer_org_list' %}" class="btn btn-primary">Go to Management Portal</a>
+            <a href="{% url 'organizations:organization_create' %}" class="btn btn-outline-primary">Create New Org</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="p-4 p-lg-5 mb-4 bg-primary text-white rounded-3 shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-6 fw-bold">Skip the line. Book your queue online.</h1>
+                <p class="lead mb-0">
+                    SmartQueue helps you reserve a token before you arrive—clear wait times, calmer visits.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="get" class="card card-body mb-4 shadow-sm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label" for="id_q">Search organizations</label>
+                {{ form.q }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="id_type">Type</label>
+                {{ form.type }}
+            </div>
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+        <p class="text-muted small mb-0 mt-2">Search matches name, address, or type keywords.</p>
+    </form>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'organizations:organization_list' %}">All</a>
+        <a class="btn btn-outline-secondary btn-sm"
+           href="{% url 'organizations:organization_list' %}?type=hospital">Hospital</a>
+        <a class="btn btn-outline-secondary btn-sm"
+           href="{% url 'organizations:organization_list' %}?type=bank">Bank</a>
+        <a class="btn btn-outline-secondary btn-sm"
+           href="{% url 'organizations:organization_list' %}?type=govt">Govt</a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for org in organizations %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h2 class="h5 card-title mb-0">{{ org.name }}</h2>
+                            <span class="badge text-bg-light text-capitalize">{{ org.get_type_display }}</span>
+                        </div>
+                        <p class="card-text text-muted small">{{ org.address|truncatechars:160 }}</p>
+                        <a class="btn btn-primary" href="{% url 'organizations:organization_detail' org.slug %}">View
+                            Services</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col">
+                <div class="alert alert-info mb-0">No organizations matched your filters.</div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

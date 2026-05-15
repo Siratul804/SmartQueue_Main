@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}My tokens · SmartQueue{% endblock %}
+{% block content %}
+    <h1 class="h3 mb-3">My tokens</h1>
+
+    <ul class="nav nav-tabs" id="tokenTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-pane" type="button"
+                    role="tab">Active
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button"
+                    role="tab">History
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 rounded-bottom p-3 bg-white">
+        <div class="tab-pane fade show active" id="active-pane" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Organization</th>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Position</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in active_tokens %}
+                        <tr>
+                            <td class="fw-semibold">{{ t.token_number }}</td>
+                            <td>{{ t.organization.name }}</td>
+                            <td>{{ t.service.name }}</td>
+                            <td><span class="badge text-bg-secondary">{{ t.get_status_display }}</span></td>
+                            <td>
+                                {% if t.status == 'waiting' %}
+                                    {% with pos=t.get_current_position %}
+                                        {% if pos %}{{ pos }}{% else %}—{% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-primary" href="{% url 'queue:token_status' t.id %}">View
+                                    status</a>
+                                {% if t.status == 'waiting' %}
+                                    <form class="d-inline" method="post" action="{% url 'queue:cancel_token' t.id %}"
+                                          onsubmit="return confirm('Cancel this token?');">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-muted">No active tokens.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="history-pane" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Organization</th>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in history_tokens %}
+                        <tr>
+                            <td class="fw-semibold">{{ t.token_number }}</td>
+                            <td>{{ t.organization.name }}</td>
+                            <td>{{ t.service.name }}</td>
+                            <td><span class="badge text-bg-light text-dark border">{{ t.get_status_display }}</span></td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'queue:token_status' t.id %}">View
+                                    details</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted">No history yet.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
