@@ -46,9 +46,11 @@ class OrganizerDashboardView(OrganizerRequiredMixin, DetailView):
         today = timezone.localdate()
         
         # Stats
-        tokens_today = Token.objects.filter(organization=organization, booking_date=today)
-        context['waiting_today'] = tokens_today.filter(status=Token.STATUS_WAITING).count()
-        context['serving_today'] = tokens_today.filter(status=Token.STATUS_SERVING).count()
+        all_tokens = Token.objects.filter(organization=organization)
+        tokens_today = all_tokens.filter(booking_date=today)
+        
+        context['waiting_today'] = all_tokens.filter(status=Token.STATUS_WAITING).count()
+        context['serving_today'] = all_tokens.filter(status=Token.STATUS_SERVING).count()
         context['completed_today'] = tokens_today.filter(status=Token.STATUS_COMPLETED).count()
         context['cancelled_today'] = tokens_today.filter(status=Token.STATUS_CANCELLED).count()
         
@@ -59,11 +61,14 @@ class OrganizerDashboardView(OrganizerRequiredMixin, DetailView):
         
         # Services status
         context['services'] = organization.services.annotate(
-            waiting_count=Count('tokens', filter=Q(tokens__status=Token.STATUS_WAITING, tokens__booking_date=today))
+            waiting_count=Count('tokens', filter=Q(tokens__status=Token.STATUS_WAITING))
         )
         
-        # Today's Bookings
-        context['today_bookings'] = tokens_today.select_related('service', 'user').order_by('created_at')
+        # Active Bookings (Waiting, Called, Serving)
+        context['today_bookings'] = Token.objects.filter(
+            organization=organization,
+            status__in=[Token.STATUS_WAITING, Token.STATUS_CALLED, Token.STATUS_SERVING]
+        ).select_related('service', 'user').order_by('created_at')
         
         return context
 

@@ -351,20 +351,20 @@ class AdminDashboardView(StaffRequiredMixin, DetailView):
         booking_date = timezone.localdate()
 
         waiting_qs = (
-            Token.objects.filter(organization=self.object, booking_date=booking_date, status=Token.STATUS_WAITING)
+            Token.objects.filter(organization=self.object, status=Token.STATUS_WAITING)
             .select_related('service', 'user')
             .order_by('created_at', 'id')
         )
 
         serving = (
-            Token.objects.filter(organization=self.object, booking_date=booking_date, status=Token.STATUS_SERVING)
+            Token.objects.filter(organization=self.object, status=Token.STATUS_SERVING)
             .select_related('service', 'user')
             .order_by('-called_at', '-id')
             .first()
         )
 
         called = (
-            Token.objects.filter(organization=self.object, booking_date=booking_date, status=Token.STATUS_CALLED)
+            Token.objects.filter(organization=self.object, status=Token.STATUS_CALLED)
             .select_related('service', 'user')
             .order_by('-called_at', '-id')
             .first()
@@ -381,9 +381,9 @@ class AdminDashboardView(StaffRequiredMixin, DetailView):
         emergency_qs = (
             Token.objects.filter(
                 organization=self.object,
-                booking_date=booking_date,
                 is_emergency=True,
                 emergency_approved=False,
+                status=Token.STATUS_WAITING,
             )
             .select_related('service', 'user')
             .order_by('-created_at')
@@ -441,7 +441,6 @@ class CallNextTokenView(StaffRequiredMixin, View):
         next_token = (
             Token.objects.filter(
                 organization=organization,
-                booking_date=booking_date,
                 status=Token.STATUS_WAITING,
             )
             .order_by('created_at', 'id')
